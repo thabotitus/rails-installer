@@ -1,5 +1,5 @@
 #! /bin/bash
-# A script to automeate the process of installing Rails and all it's dependencies.
+# A script to automate the process of installing Rails and all it's dependencies.
 # V 0.0.1
 
 function operating_system_details {
@@ -17,6 +17,16 @@ function current_ruby_version {
 		echo "0"
 	else
 		echo $RUBY_VERSION
+	fi
+}
+
+function rvm_exists {
+	RVM=`rvm -v`
+	if [[ $RVM == "" ]]
+	then
+		return false
+	else
+		return true
 	fi
 }
 
@@ -38,12 +48,24 @@ function install_dependencies {
 
 function install_rvm {
 	echo "-- Installing RVM dependencies..."
-	`sudo apt-get -y install libgdbm-dev libncurses5-dev automake libtool bison libffi-dev &> log/install.log`
+	`sudo apt-get -y install libgdbm-dev libncurses5-dev automake libtool bison libffi-dev &> log/rvm.log`
 	echo "-- Installing RVM..."
 	`gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3`
-	`curl -L https://get.rvm.io | bash -s stable &> log/install.log`
-	`source ~/.rvm/scripts/rvm`
+	`curl -L https://get.rvm.io | bash -s stable &> log/rvm.log`
+	source `~/.rvm/scripts/rvm`
 	echo "-- Done installing RVM..."
+}
+
+function install_ruby {
+	echo "-- Installing RUBY..."
+	if [[ rvm_exists == true ]] 
+	then	
+		`rvm install 2.2.3 &> log/ruby.log`
+		echo "-- Done installing RUBY..."
+	else
+		echo "RVM wasn't installed properly..Check log/ruby.log for details"
+		exit 1
+	fi
 }
 
 function run_installation {
@@ -52,10 +74,7 @@ function run_installation {
 	update_cache
 	install_dependencies
 	install_rvm
+	install_ruby
 }
 
 run_installation
-
-
-
-
